@@ -1,6 +1,11 @@
 import streamlit as st
 
-st.title("🎈 My new aplication")
-st.write(
-    "Let's start building! For help and inspiration, head over to [docs.streamlit.io](https://docs.streamlit.io/)."
-)
+st.title("🎈 Bem-vindo!")
+st.write("Chat para Agendamentos Hospitalares.")
+
+texto = st.text_input("Escreva aqui:")
+
+if texto:
+    st.json({
+        "mensagem": texto
+    })
