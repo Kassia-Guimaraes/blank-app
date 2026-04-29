@@ -3,7 +3,9 @@ import requests
 from datetime import datetime
 import uuid
 
-N8N_WEBHOOK_URL = "http://193.136.11.144:5624/webhook-test/d690d22d-3ff1-481a-9b57-a0fc52d2404f"
+N8N_WEBHOOK_URL = "http://193.136.11.144:5624/webhook/d690d22d-3ff1-481a-9b57-a0fc52d2404f"
+
+#teste
 
 st.title("🏥 Chat de Agendas Médicas")
 st.write("Consulte agendamentos a partir de hoje.")
