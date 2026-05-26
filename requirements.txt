@@ -1,4 +1,4 @@
 streamlit
 requests
 datetime
-streamlit-smart-text-input
+plotly
