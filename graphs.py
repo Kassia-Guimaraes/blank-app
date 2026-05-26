@@ -53,7 +53,7 @@ def grafico_pizza_cirurgias(metricas):
         color="Categoria",
         color_discrete_map={
             "Agendadas": "#5BB042",
-            "Lista de Espera": "#C65D5D"
+            "Lista de Espera": "#C23D3D"
         }
     )
 
