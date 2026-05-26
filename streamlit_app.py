@@ -4,13 +4,15 @@ from datetime import datetime
 import uuid
 import pandas as pd 
 
-N8N_WEBHOOK_URL = "http://193.136.11.144:5624/webhook-test/d690d22d-3ff1-481a-9b57-a0fc52d2404f"
+from streamlit_smart_text_input import st_smart_text_input
 
-#teste
+N8N_WEBHOOK_URL = "http://193.136.11.144:5624/webhook-test/99a9a512-1f7f-4fbb-ad58-2deefed82045"
+
 
 st.title("🏥 Chat de Agendas Médicas")
 st.write("Consulte agendamentos a partir de hoje.")
 
+##### histórico das conversas #######
 if "historico" not in st.session_state:
     st.session_state.historico = []
 
@@ -22,7 +24,20 @@ for msg in st.session_state.historico:
             df = pd.DataFrame(msg["tabela"])
             st.dataframe(df, use_container_width=True)
 
-pergunta = st.chat_input("Faça uma pergunta sobre a agenda")
+
+sugestoes = [ #sugestões de questões
+    "quero consultar a lista de espera",
+    "quero consultar as cirurgias do dia",
+    "quero realizar um agendamento para os dias"
+]
+
+##### input do utilizador ######
+pergunta = st_smart_text_input(
+    label="Escreva a sua pergunta",
+    options=sugestoes,
+    placeholder="Ex.: quero consultar a lista de espera...",
+    delay=200,
+)
 
 if pergunta:
     st.session_state.historico.append({"role": "user", "content": pergunta})
@@ -37,7 +52,7 @@ if pergunta:
 
 
     payload = {
-        "mensagem": pergunta,
+        "chatInput": pergunta,
         "data_hoje": agora.date().isoformat(),
         "data_hora_pedido": agora.isoformat(),
         "origem": "streamlit-medicos",
@@ -49,14 +64,15 @@ if pergunta:
     tabela_bot = None
 
     try:
-        response = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=60*4)
-        response.raise_for_status()
+        with st.spinner("A aguardar resposta...", show_time=True):
+            inicio = datetime.now()
+            response = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=60*20)
+            response.raise_for_status()
+            dados = response.json()
 
-        dados = response.json()
 
-        st.json(dados)
-        if "resposta" in dados and dados["resposta"]:
-            resposta_bot = dados.get("resposta", "O n8n respondeu sem o campo 'resposta'.")
+        if ("output" or "mensagem") in dados and (dados["output"] or dados['mensagem']):
+            resposta_bot = dados.get("output", "O n8n respondeu sem o campo 'resposta'.")
 
         if "tabela" in dados and isinstance(dados["tabela"], list):
             tabela_bot = dados["tabela"]
@@ -78,6 +94,3 @@ if pergunta:
         if tabela_bot is not None:
             df = pd.DataFrame(tabela_bot)
             st.dataframe(df, use_container_width=True)
-
-    with st.expander("JSON enviado ao n8n"):
-        st.json(payload)
