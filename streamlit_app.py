@@ -26,18 +26,23 @@ for msg in st.session_state.historico:
 
 
 sugestoes = [ #sugestões de questões
-    "quero consultar a lista de espera",
-    "quero consultar as cirurgias do dia",
-    "quero realizar um agendamento para os dias"
+    "Consultar a lista de espera",
+    "Consultar as últimas cirurgias",
+    "Realizar um agendamento para os dias 10 a 20 de março de 2023",
+    "Qual a quantidade de pacientes por médico?",
+    "Alterar agendamentos"
 ]
 
+sugest = st.pills(
+        "Sugestões de perguntas",
+        sugestoes,
+        selection_mode="single"
+    )
+
 ##### input do utilizador ######
-pergunta = st_smart_text_input(
-    label="Escreva a sua pergunta",
-    options=sugestoes,
-    placeholder="Ex.: quero consultar a lista de espera...",
-    delay=200,
-)
+pergunta_dig = st.chat_input("Escreva a sua pergunta")
+
+pergunta = sugest or pergunta_dig
 
 if pergunta:
     st.session_state.historico.append({"role": "user", "content": pergunta})
