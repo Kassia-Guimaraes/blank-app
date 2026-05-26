@@ -76,7 +76,7 @@ if pergunta:
             dados = response.json()
 
 
-        if ("output" or "mensagem") in dados and (dados["output"] or dados['mensagem']):
+        if "output" in dados and dados["output"]:
             resposta_bot = dados.get("output", "O n8n respondeu sem o campo 'resposta'.")
 
         if "tabela" in dados and isinstance(dados["tabela"], list):
