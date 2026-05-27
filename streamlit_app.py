@@ -93,7 +93,7 @@ if pergunta:
             tabela_bot = dados["tabela"]
 
         if "metricas_otmz" in dados and dados['metricas_otmz']:
-            metricas_otmz = dados['metricas']
+            metricas_otmz = dados['metricas_otmz']
 
         if not resposta_bot and tabela_bot:
             resposta_bot = "Encontrei os registos da agenda."
