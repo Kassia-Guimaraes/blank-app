@@ -7,6 +7,8 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
+from graphs import *
+
 N8N_WEBHOOK_URL = "http://193.136.11.144:5624/webhook-test/99a9a512-1f7f-4fbb-ad58-2deefed82045"
 
 
@@ -24,16 +26,20 @@ for msg in st.session_state.historico:
         if "tabela" in msg and msg["tabela"] is not None:
             df = pd.DataFrame(msg["tabela"])
             st.dataframe(df, use_container_width=True)
-        if "metricas" in msg and msg['metricas'] is not None:
-            print('')
+        if "metricas_otmz" in msg and msg["metricas_otmz"] is not None:
+            render_kpis(msg["metricas_otmz"])
+
+            cirurgias = grafico_pizza_cirurgias(msg['metricas_otmz'])
+            st.plotly_chart(cirurgias, use_container_width=True)
 
 
 sugestoes = [ #sugestões de questões
-    "Consultar a lista de espera",
-    "Consultar as últimas cirurgias",
-    "Realizar um agendamento para os dias 10 a 20 de março de 2023",
-    "Qual a quantidade de pacientes por médico?",
-    "Alterar agendamentos"
+    "Consultar a lista de espera da especialidade de ortopedia",
+    "Consultar as últimas cirurgias agendadas",
+    "Realizar agendamento dos dias 10 a 20 de março de 2023",
+    "Alterar um agendamento",
+    "Qual a quantidade de cirurgias por turno?",
+    "Quantos pacientes cada médico tem?"
 ]
 
 sugest = st.pills(
@@ -70,6 +76,7 @@ if pergunta:
 
     resposta_bot = "O n8n respondeu sem conteúdo."
     tabela_bot = None
+    metricas_otmz = None
 
     try:
         with st.spinner("A aguardar resposta...", show_time=True):
@@ -85,8 +92,8 @@ if pergunta:
         if "tabela" in dados and isinstance(dados["tabela"], list):
             tabela_bot = dados["tabela"]
 
-        if "metricas" in dados and dados['metricas']:
-            metricas_bot = dados['metricas']
+        if "metricas_otmz" in dados and dados['metricas_otmz']:
+            metricas_otmz = dados['metricas']
 
         if not resposta_bot and tabela_bot:
             resposta_bot = "Encontrei os registos da agenda."
@@ -98,17 +105,18 @@ if pergunta:
         "role": "assistant",
         "content": resposta_bot,
         "tabela": tabela_bot,
-        "metricas": metricas_bot
+        "metricas_otmz": metricas_otmz
     })
 
     with st.chat_message("assistant"):
         st.write(resposta_bot)
-        if metricas_bot:
-            c1, c2, c3, c4 = st.columns(4)
-            c1.metric("Cirurgias Agendadas", metricas_bot.get("Cirurgias Agendadas", 0))
-            c2.metric("Lista de Espera", metricas_bot.get("Cirurgias Lista de Espera", 0))
-            c3.metric("Recursos", f"{metricas_bot.get('Recursos', 0):.2f}%")
-            c4.metric("Turnos Desrespeitados", metricas_bot.get("Turnos desrespeitados", 0))
+
+        if metricas_otmz is not None:
+            render_kpis(metricas_otmz)
+            
+            cirurgias = grafico_pizza_cirurgias(metricas_otmz)
+            st.plotly_chart(cirurgias, use_container_width=True)
+
         if tabela_bot is not None:
             df = pd.DataFrame(tabela_bot)
             st.dataframe(df, use_container_width=True)
