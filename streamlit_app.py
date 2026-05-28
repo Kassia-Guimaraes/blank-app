@@ -13,7 +13,7 @@ N8N_WEBHOOK_URL = "http://193.136.11.144:5624/webhook-test/99a9a512-1f7f-4fbb-ad
 
 
 st.title("🏥 Chat de Agendas Médicas")
-st.write("Consulte agendamentos a partir de hoje.")
+st.write("Realize agendamentos, consulte lista de espera e faça alterações.")
 
 ##### histórico das conversas #######
 if "historico" not in st.session_state:
