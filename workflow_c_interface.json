@@ -1,0 +1,2062 @@
+{
+  "name": "PCD_c/interface",
+  "nodes": [
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Webhook').item.json.body.sessionId }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -720,
+        784
+      ],
+      "id": "153eb9e8-6422-4a53-9d47-e149fede4954",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "model": "llama3.3:latest",
+        "options": {
+          "temperature": 0.5
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        -128
+      ],
+      "id": "89fc2bd5-4570-4cc6-92ff-9aa7a2dccf77",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "GxXaPNwYuCHar6Du",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### 📚RAG - LISTA DE ESPERA",
+        "height": 396,
+        "width": 892,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        784,
+        304
+      ],
+      "typeVersion": 1,
+      "id": "fc358c4a-0faa-4d21-97ea-6258af6d3440",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text:latest"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        1216,
+        592
+      ],
+      "id": "41d61e3a-02d2-4c71-aef5-20ccdad8791b",
+      "name": "Embeddings Ollama",
+      "credentials": {
+        "ollamaApi": {
+          "id": "GxXaPNwYuCHar6Du",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 23
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        800,
+        352
+      ],
+      "id": "279cd234-51ad-4043-8c86-7dbabf220f12",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "content": "### 🤖AGENTE CLASSIFICADOR\n",
+        "height": 368,
+        "width": 784,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1456,
+        336
+      ],
+      "id": "9ea076d5-588d-4368-863a-c1e27e34e681",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "python",
+        "pythonCode": "j = item.get(\"json\", {})\n\ntexto_processado = f\"|{j.get('id_cirurgia', '')}|{j.get('DES_GRUPO', '')}|{j.get('DES_PATOLOGIA', '')}|{j.get('NOME_MEDICO', '')}|{j.get('NOME', '')}\"\n\nreturn {\"id\": int(j.get(\"id_cirurgia\", 0) or 0),\n            \"content\": texto_processado,\n            \"metadata\": {\n                \"medico\": j.get(\"NOME_MEDICO\"),\n                \"grupo\": j.get(\"DES_GRUPO\")\n        }}\n \n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        352
+      ],
+      "id": "43294879-f38a-4ba5-9c6f-72aa99a0a49b",
+      "name": "Code in Python (Beta)"
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text:latest"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        944,
+        -208
+      ],
+      "id": "06937c71-72ad-42ef-89e2-a70328c4df22",
+      "name": "Embeddings Ollama1",
+      "credentials": {
+        "ollamaApi": {
+          "id": "GxXaPNwYuCHar6Du",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "import datetime\n\ninput_data = items[0].json\n\nsolutions = input_data.get('solution', {})\nsummary = input_data.get('summary', {})\n\nlista_agendamentos = []\ndef agendamentos(solutions):\n\n  relatorio_id = datetime.datetime.now().strftime(\"%Y%m%d_%H%M\")\n  \n  for solution in solutions:\n    for j in solution:\n      texto_processado = f\"REGISTO DE AGENDAMENTO:|Data {j[0].get('data', '')}|Turno {j[0].get('tipo', '')}|Duração {j[0].get('duracao', '')}segundos|Ids Cirurgias {j[1:]}\"\n\n      lista_agendamentos.append({\n          \"json\": {\n              \"content\": texto_processado,\n              \"data_agendamento\": relatorio_id\n          }\n      })\n\n  return lista_agendamentos\n\nreturn agendamentos(solutions)"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        -416
+      ],
+      "id": "85a19542-9835-44ce-b6c3-2aef6d68c74c",
+      "name": "Code in Python (Beta)1"
+    },
+    {
+      "parameters": {
+        "content": "### 📚 AGENTE AGENDAMENTOS",
+        "height": 572,
+        "width": 1932,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -400,
+        -480
+      ],
+      "typeVersion": 1,
+      "id": "d39bbb77-f021-442e-8406-69d5c0096040",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": "agendamentos",
+        "options": {
+          "columnNames": {
+            "values": {
+              "contentColumnName": "content"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        944,
+        -416
+      ],
+      "id": "b7cf084f-1b56-4be1-890e-f6639399268d",
+      "name": "PGVector Store Agendamentos",
+      "credentials": {
+        "postgres": {
+          "id": "mkReDiDoZBhY7N2I",
+          "name": "Supabase - Sara"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": "documentos",
+        "options": {
+          "columnNames": {
+            "values": {
+              "idColumnName": "=id",
+              "contentColumnName": "content"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        1312,
+        352
+      ],
+      "id": "29cb0126-a78d-408b-ab54-04bed1df95d8",
+      "name": "PGVector Store Lista de Espera",
+      "credentials": {
+        "postgres": {
+          "id": "mkReDiDoZBhY7N2I",
+          "name": "Supabase - Sara"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Utiliza esta ferramenta para consultar a base de dados com informações de pacientes, médicos e cirurgias. Procura aqui sempre que o utilizador perguntar sobre id de cirurgias, nomes de pacientes, nomes dos médicos ou detalhes das cirurgias.",
+        "tableName": "documentos",
+        "topK": 30,
+        "options": {
+          "columnNames": {
+            "values": {
+              "contentColumnName": "content"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        -16,
+        592
+      ],
+      "id": "6bc65f2a-5b0f-480a-8daa-f830d0d5752d",
+      "name": "PGVector Store Tool - Lista de Espera",
+      "credentials": {
+        "postgres": {
+          "id": "mkReDiDoZBhY7N2I",
+          "name": "Supabase - Sara"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Consultas a base de dados agendamentos e dás todas as informações sobre esses agendamentos.",
+        "tableName": "agendamentos",
+        "topK": 30,
+        "options": {
+          "columnNames": {
+            "values": {
+              "contentColumnName": "content"
+            }
+          },
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "data_agendamento",
+                "value": "={{ $json.data_agendamento }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        1536,
+        1008
+      ],
+      "id": "422f5213-0eaf-47bd-b722-d542288179b0",
+      "name": "PGVector Store Tool - Agendamentos",
+      "credentials": {
+        "postgres": {
+          "id": "mkReDiDoZBhY7N2I",
+          "name": "Supabase - Sara"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0ebf8a52-591d-4748-b77e-2b5c08d21143",
+              "leftValue": "={{ $json.output.valid }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        80,
+        -432
+      ],
+      "id": "907baec4-28e8-4f07-a6ad-da10300f34d8",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.233.24:8080/process_csv",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "param1",
+              "value": "={{ $json.param1 }}"
+            },
+            {
+              "name": "param2",
+              "value": "={{ $json.param2 }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        464,
+        -448
+      ],
+      "id": "07d582da-bd32-4c5f-9fae-f68fd0a06576",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $('Code in Python (Beta)').item.json.content }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "id_value",
+                "value": "={{ $('Code in Python (Beta)').item.json.id }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        1520,
+        544
+      ],
+      "id": "1117cbdf-1187-43c2-8b7b-3051d61ec11f",
+      "name": "Default Data Loader - Lista de Espera"
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $('Code in Python (Beta)1').item.json.content }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "data_agendamento",
+                "value": "={{ $('Code in Python (Beta)1').item.json.data_agendamento }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        1072,
+        -208
+      ],
+      "id": "bfbbc57b-4f6f-4e6c-ac7a-a13d134689b2",
+      "name": "Default Data Loader - Agendamentos"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  param1: $input.first().json.output.start_date,\n  param2: $input.first().json.output.end_date\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        288,
+        -448
+      ],
+      "id": "a78c2bdd-b4ca-40fe-ae70-d797e8d9ebd9",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "import datetime\n\ninput_data = items[0].json\nsummary = input_data.get('summary', {})\n\n# Criamos um ID baseado no momento da importação\nrelatorio_id = datetime.datetime.now().strftime(\"%Y%m%d_%H%M\")\n\nsummary[\"id_agendamento\"] = relatorio_id\n\nreturn [\n    {\n        \"json\": {\n            **input_data,\n            \"summary\": summary\n        }\n    }\n]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        -272
+      ],
+      "id": "7e4ff512-0349-4847-b100-e18b91b45ec7",
+      "name": "Code in Python (Beta)3"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"start_date\": \"2023-03-21\", \n  \"end_date\": \"2023-03-31\", \n  \"valid\": true\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -64,
+        -128
+      ],
+      "id": "4704cb14-655b-46e1-b0a7-d6bfc3700201",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.chatInput.toLowerCase() }}",
+                    "rightValue": "agendar|realizar agendamento|realizar um agendamento|fazer agendamento|fazer um agendamento",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    },
+                    "id": "c43c7bbb-687a-4d4a-943a-d149ec8bbc52"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "cedd241f-c994-4ad8-999d-e2b7d4d8695c",
+                    "leftValue": "={{ $json.chatInput.toLowerCase() }}",
+                    "rightValue": "quero consultar a cirurgia|consultar|consultar o agendamento|informações|qual a cirurgia|qual o médico",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e3969084-c0b8-4c9c-8b2b-e20a905aaa0a",
+                    "leftValue": "={{ $json.chatInput.toLowerCase() }}",
+                    "rightValue": "alterar uma cirurgia|retirar um turno|alterar o agendamento|modificar|alterar um agendamento",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "099ac06c-82e2-4800-8a13-70da2d970720",
+                    "leftValue": "={{ $json.chatInput.toLowerCase() }}",
+                    "rightValue": "quantidade de|quantos",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -816,
+        352
+      ],
+      "id": "00da6da2-83f3-473c-b6c9-a566090ae147",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.chatInput }}",
+        "options": {
+          "systemMessage": "=A tua função é classificar a intenção do usuário e coletar dados básicos.\nSe o pedido for vago, pede para clarificar.\n\n\nIMPORTANTE: Não tentes responder perguntas técnicas sobre cirurgias.\n\nQuero que retornes apenas um JSON com o seguinte formato:\n{\nchatInput: {{ $json.body.chatInput }},\noutput: a tua resposta\n}\n\nNão retornes qualquer tipo de string."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -1248,
+        384
+      ],
+      "id": "cd3a3f88-3ad2-4ef3-ad5f-ea37c271b058",
+      "name": "Classifier Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama3.3:latest",
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        544
+      ],
+      "id": "471e2ad3-a035-4f01-b7b5-eb1a011af3a9",
+      "name": "Ollama Chat Model2",
+      "credentials": {
+        "ollamaApi": {
+          "id": "GxXaPNwYuCHar6Du",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### 📚 AGENTE CONSULTA",
+        "height": 444,
+        "width": 2108,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -400,
+        272
+      ],
+      "typeVersion": 1,
+      "id": "847cf31c-98f5-48bc-bc1e-221533bd80ba",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "### 📚RAG - AGENDAMENTOS",
+        "height": 540,
+        "width": 796,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        704,
+        -464
+      ],
+      "typeVersion": 1,
+      "id": "6d2e924d-a0a0-4f84-b46b-3502f73f3867",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Tu és um assistente de agendamentos. Realizas agendamentos.\n\nSe o utilizador pretender realizar um Agendamento, extrai as datas no formato (AAAA-MM-DD), ele tem de dar o dia, mês e ano, se faltar alguma data → valid = false"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -208,
+        -432
+      ],
+      "id": "f2801a89-fbaf-453c-a422-da3f70c67169",
+      "name": "AI Agent - Agendamentos"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=Função: És um Assistente de Base de Dados Hospitalar rigoroso. A sua única função é fornecer informações sobre Listas de Espera de Cirurgias e Marcações de Cirurgias com base nas ferramentas fornecidas. \n\nFuncionalidades Disponíveis:\n\nSe o utilizador pretender Consultar Lista de Espera:\n- Os dados estão na  ferramenta de busca PGVector Store Tool - Lista de Espera que tem o seguinte formato |ID|ESPECIALIDADE|PATOLOGIA|MEDICO|PACIENTE.\n\nSe o utilizador pretender Consultar Agendamento:\n- Os dados estão na ferramenta de busca PGVector Store Tool - Agendamentos que tem o seguinte formato:\nREGISTO DE AGENDAMENTO:|Data|Turno|Duração|Ids Cirurgias\nSó me podes dar as informações que encontrares lá.\n\nRegras Rigorosas:\n\nALUCINAÇÃO ZERO: SÓ podes fornecer informações explicitamente encontradas nos resultados das ferramentas.\n\nSe um campo (como o Nome do Doente ou do Médico) não for devolvido pela ferramenta, deverá dizer na mensagem \"A informação não está disponível\".\n\n\nRetorne os dados como: \n{\n  \"output\": \"Aqui estão as informações sobre a base de dados XXX.\"\n  \"tabela\": [{}]\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -80,
+        368
+      ],
+      "id": "bd6ea9a2-196a-4f89-8b63-49de02295dcd",
+      "name": "AI Agent - Consulta"
+    },
+    {
+      "parameters": {
+        "model": "llama3.3:latest",
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        0
+      ],
+      "id": "edf42dde-ebea-4f99-a4f9-afa258700e4d",
+      "name": "Ollama Chat Model3",
+      "credentials": {
+        "ollamaApi": {
+          "id": "GxXaPNwYuCHar6Du",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT (metadata->>'data_agendamento') as data_agendamento\nFROM agendamentos \nORDER BY metadata->>'data_agendamento' DESC \nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -384,
+        368
+      ],
+      "id": "e0b64fae-09b0-4f30-b314-84d51c5b5f8b",
+      "name": "Execute a SQL query1",
+      "credentials": {
+        "postgres": {
+          "id": "mkReDiDoZBhY7N2I",
+          "name": "Supabase - Sara"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "test_n8n",
+          "mode": "list",
+          "cachedResultName": "test_n8n"
+        },
+        "table": {
+          "__rl": true,
+          "value": "lista_espera_etl",
+          "mode": "list",
+          "cachedResultName": "lista_espera_etl"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        960,
+        352
+      ],
+      "id": "47477a89-b59e-4414-a575-ed5538028c70",
+      "name": "Select rows from a table",
+      "credentials": {
+        "postgres": {
+          "id": "0fh1dQRFik0hlPGM",
+          "name": "Postgres - Hospital"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  chatInput: $('Code in JavaScript5').first().json.chatInput,\n  data_agendamento: $input.first().json.data_agendamento.replace(/[^0-9_]/g, '')\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        368
+      ],
+      "id": "96c1d553-7369-4a71-abfe-0df6a2bae590",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "model": "llama3.3:latest",
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -1248,
+        576
+      ],
+      "id": "5e6aaf22-df95-4301-a5dd-49b2586c889f",
+      "name": "Ollama Chat Model4",
+      "credentials": {
+        "ollamaApi": {
+          "id": "GxXaPNwYuCHar6Du",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 20,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1168,
+        -64
+      ],
+      "id": "328e889f-48a0-435d-9115-7f98bf35ca59",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "content": "### 📚 AGENTE ALTERAR",
+        "height": 572,
+        "width": 2236,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -400,
+        848
+      ],
+      "typeVersion": 1,
+      "id": "88fe4e13-f65c-443e-8f99-5558e0b86f62",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "### ROLE\nTu és o Agente de Integridade de Agendamentos Hospitalares. A tua especialidade é a manipulação precisa de dados estruturados em sistemas de agendamento cirúrgico.\n\n### OBJECTIVE\nGerir a alteração de turnos e cirurgias. O teu objetivo é garantir que, ao alterar um turno, o utilizador veja e confirme o impacto no AGENDAMENTO COMPLETO (todos os turnos).\n\n### DATA RETRIEVAL RULES (STRICT)\n1. Antes de qualquer alteração, utiliza a ferramenta \"PGVector Store Tool - Agendamentos\", para obteres todos os turnos.\n2. OBRIGATÓRIO: Se o utilizador mencionar uma data ou ID, recupera na mesma TODAS as entradas associadas a esse \"data_agendamento\" que se encontra na metadata. \n3. Se a ferramenta retornar apenas um turno (ex: apenas Manhã), avisa o sistema que precisas de procurar o contexto completo do dia antes de validar.\n\n### OPERATIONAL CONSTRAINTS\n- NÃO alucines IDs. Se o ID não estiver nos dados recuperados, informa: \"ID não encontrado\".\n- NÃO adiciones novas cirurgias. Apenas podes: Remover IDs existentes ou Trocar IDs entre turnos.\n- FORMATO DE SAÍDA: O conteúdo deve seguir o padrão: \n\"REGISTO DE AGENDAMENTO:|Data YYYY-MM-DD|Turno X|Duração Y segundos|Ids Cirurgias: 1, 2, 3\".\n\n### CONVERSATION FLOW\n1. RECOLHA: Identifica o agendamento e apresenta TODOS os turnos encontrados (M, T) ao utilizador.\n2. ALTERAÇÃO: Processa o pedido do utilizador (ex: retirar ID 237).\n3. PRÉ-VISUALIZAÇÃO: Mostra o novo estado de todos os turnos. \n4. CONFIRMAÇÃO: Pergunta explicitamente: \"Confirma esta atualização no sistema?\".\n\n### OUTPUT STRUCTURE (JSON)\nMantém sempre um objeto JSON no final da tua resposta para o n8n processar:\n\n{\n  \"output\": resposta amigável com a informação para transmitir ao utilizador (inclui também toda a informação sobre os agendamentos),\n  \"agendamentos\": [ ...lista completa de todos os turnos atualizados... ],\n  \"valid\": false\n}\n\nIMPORTANTE: Responde sempre no formato JSON estruturado. Coloca a tua mensagem de texto para o utilizador no campo \"output\" e os dados técnicos no campo \"agendamentos\". Não escrevas nada fora do bloco JSON.\n\nIMPORTANTE: Só mudas \"valid\" para true após o utilizador dizer \"Sim\", \"Confirmo\", ou \"Pode avançar\". Até lá, é estritamente false.\n\n### LANGUAGE & TONE\n- Responde exclusivamente em Português de Portugal (PT-PT).\n- Tom profissional, conciso e focado em segurança de dados médicos.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -80,
+        928
+      ],
+      "id": "79cb9ca2-406d-4176-87d1-1a18b1979062",
+      "name": "AI Agent - Alterações"
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "import datetime\nimport json\n\n# 1. Capturar os dados de entrada corretos do n8n\ninput_data = _input.first().json\n\n# 2. Acessar o dicionário principal \"output\" usando a variável correta (input_data)\ndados_internos = input_data.get('output', {})\n\n# 3. Capturar a string de agendamentos que está dentro de \"output\"\nagendamentos_string = dados_internos.get('agendamentos', '[]')\n\n# 4. Desserializar a string JSON para uma lista real do Python\ntry:\n    solutions = json.loads(agendamentos_string)\nexcept Exception as e:\n    solutions = []\n\nlista_agendamentos = []\n\n# 5. Gerar o ID baseado no momento atual\ndata_agendamento_id = datetime.datetime.now().strftime(\"%Y%m%d_%H%M\")\n\n# 6. Iterar sobre os agendamentos processados\nfor item in solutions:\n    # Tratando as chaves e possíveis variações de espaçamento (\"data\" ou \"da ta\")\n    data = item.get('data', '') or item.get('data_agendamento', '')\n    turno = item.get('turno', '')\n    duracao = item.get('duracao', '') or item.get('duração', '')\n    ids = item.get('ids_cirurgias', [])\n    \n    if isinstance(ids, list):\n        ids_str = \", \".join(map(str, ids))\n    else:\n        ids_str = str(ids)\n\n    # Formatar a string exatamente para o padrão do seu RAG\n    texto_processado = f\"REGISTO DE AGENDAMENTO:|Data {data}|Turno {turno}|Duração {duracao} segundos|Ids Cirurgias: {ids_str}\"\n\n    lista_agendamentos.append({\n        \"json\": {\n            \"content\": texto_processado,\n            \"data_agendamento\": data_agendamento_id\n        }\n    })\n\n# Fallback de segurança para o n8n não dar erro de nó vazio\nif not lista_agendamentos:\n    return [{\"json\": {\"aviso\": \"Nenhum agendamento encontrado no JSON de entrada.\"}}]\n\n# Retorna a lista estruturada no padrão correto do n8n\nreturn lista_agendamentos"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        848,
+        912
+      ],
+      "id": "1b03b2ee-ed6e-4b50-ac2f-e9fc583336b7",
+      "name": "Code in Python (Beta)2"
+    },
+    {
+      "parameters": {
+        "model": "llama3.3:latest",
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        1168
+      ],
+      "id": "0db620e7-f689-4e29-beef-1aa5a470b9e9",
+      "name": "Ollama Chat Model5",
+      "credentials": {
+        "ollamaApi": {
+          "id": "GxXaPNwYuCHar6Du",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  chatInput: $('Code in JavaScript5').first().json.chatInput\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -368,
+        -432
+      ],
+      "id": "d4ecc84e-1172-4201-9469-02fce2d21cbe",
+      "name": "Code in JavaScript4"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $('Classifier Agent').first().json.output;\n\nconst cleaned = raw\n  .replace(/```json/g, '')\n  .replace(/```/g, '')\n  .trim();\n\nconst parsed = JSON.parse(cleaned);\n\nreturn {\n  chatInput: parsed.chatInput,\n  chatOutput: parsed.output,\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -960,
+        384
+      ],
+      "id": "6ca34a3d-47e0-457f-975b-5cbb98677a9c",
+      "name": "Code in JavaScript5"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b6ed6ae3-6e52-4abb-a8f8-b2c4743fef28",
+              "leftValue": "={{ $json.output.valid }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        928
+      ],
+      "id": "a01712e1-719a-47bb-9787-c5214f4efebc",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"output\": \"resposta do CHAT\",\n  \"agendamentos\": \"{\\n \\\"output\\\": [\\n {\\\"data_agendamento\\\": \\\"2023-03-22\\\", \\\"turno\\\": \\\"T\\\", \\\"duração\\\": \\\"15300\\\", \\\"ids_cirurgias\\\": [471, 824, 841, 948, 981, 1222]},\\n {\\\"data_agendamento\\\": \\\"2023-03-23\\\", \\\"turno\\\": \\\"T\\\", \\\"duração\\\": \\\"15300\\\", \\\"ids_cirurgias\\\": [13, 378, 711, 721, 1087, 1156]},\\n {\\\"data_agendamento\\\": \\\"2023-03-23\\\", \\\"turno\\\": \\\"M\\\", \\\"duração\\\": \\\"22500\\\", \\\"ids_cirurgias\\\": [498, 543, 575, 670, 713, 901, 1036, 1039, 1255]},\\n {\\\"data_agendamento\\\": \\\"2023-03-21\\\", \\\"turno\\\": \\\"M\\\", \\\"duração\\\": \\\"22500\\\", \\\"ids_cirurgias\\\": [209, 217, 255, 405, 428, 472, 633, 679, 832]},\\n {\\\"data_agendamento\\\": \\\"2023-03-22\\\", \\\"turno\\\": \\\"M\\\", \\\"duração\\\": \\\"22500\\\", \\\"ids_cirurgias\\\": [392, 617, 703, 747, 756, 760, 957, 1043, 1232]},\\n {\\\"data_agendamento\\\": \\\"2023-03-21\\\", \\\"turno\\\": \\\"T\\\", \\\"duração\\\": \\\"15300\\\", \\\"ids_cirurgias\\\": [237, 267, 634, 852, 1185, 1226]}\\n ],\\n \\\"válido\\\": falso\\n}\",\n  \"valid\": false\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        32,
+        1136
+      ],
+      "id": "5e4723d0-d69d-4794-95c0-179cb9b2aebd",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "model": "llama3.3:latest",
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        32,
+        1296
+      ],
+      "id": "6e34817d-0ae3-44ec-bf51-22c4c0c18356",
+      "name": "Ollama Chat Model6",
+      "credentials": {
+        "ollamaApi": {
+          "id": "GxXaPNwYuCHar6Du",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT (metadata->>'data_agendamento') as data_agendamento\nFROM agendamentos \nORDER BY metadata->>'data_agendamento' DESC \nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -384,
+        928
+      ],
+      "id": "ce9971c5-4f9e-4454-8c8f-3d39af55f92b",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "mkReDiDoZBhY7N2I",
+          "name": "Supabase - Sara"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nreturn {\n  chatInput: $('Code in JavaScript5').first().json.chatInput,\n  data_agendamento: $input.first().json.data_agendamento.replace(/[^0-9_]/g, '')\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        928
+      ],
+      "id": "946ab996-62de-466b-a5d7-878ec44306b5",
+      "name": "Code in JavaScript6"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": "agendamentos",
+        "options": {
+          "columnNames": {
+            "values": {
+              "contentColumnName": "content"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        1024,
+        912
+      ],
+      "id": "b0cd0774-25d7-4efa-b1c8-ea513344425a",
+      "name": "PGVector Store Agendamentos1",
+      "credentials": {
+        "postgres": {
+          "id": "mkReDiDoZBhY7N2I",
+          "name": "Supabase - Sara"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text:latest"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        1200
+      ],
+      "id": "84bc1ba5-b526-49c5-bd2d-37b2515c83d2",
+      "name": "Embeddings Ollama2",
+      "credentials": {
+        "ollamaApi": {
+          "id": "GxXaPNwYuCHar6Du",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $('Code in Python (Beta)2').item.json.content }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "data_agendamento",
+                "value": "={{ $('Code in Python (Beta)2').item.json.data_agendamento }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        1232,
+        1088
+      ],
+      "id": "2f1fad75-d285-4de7-ae50-81c058352ece",
+      "name": "Default Data Loader - Agendamentos1"
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 20,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1232,
+        1232
+      ],
+      "id": "70eaec09-c550-4135-96bf-e0f9be671c36",
+      "name": "Recursive Character Text Splitter1"
+    },
+    {
+      "parameters": {
+        "content": "### 📚RAG - ALTERAÇÕES AGENDAMENTOS",
+        "height": 540,
+        "width": 1004,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        800,
+        864
+      ],
+      "typeVersion": 1,
+      "id": "38f47ed5-abc9-4365-902b-b9defa8828e5",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "99a9a512-1f7f-4fbb-ad58-2deefed82045",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1408,
+        384
+      ],
+      "id": "2d55a604-8cab-4caa-900e-8762251a4d94",
+      "name": "Webhook",
+      "webhookId": "99a9a512-1f7f-4fbb-ad58-2deefed82045"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"output\": \"Preciso que me indique as datas para marcação (dia,mês e ano)!\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        256,
+        -144
+      ],
+      "id": "7ac7f695-5518-4b7b-a246-538a3fcaf086",
+      "name": "Respond - Data Invalida"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"output\": \"{{ $json.chatOutput }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -912,
+        576
+      ],
+      "id": "3e2da0bf-614b-401c-babc-6d210294271f",
+      "name": "Respond - Pergunta Genérica"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        704,
+        -96
+      ],
+      "id": "775bd2fd-f190-498d-8357-8957cf77356d",
+      "name": "Respond - Retorno Otimização"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        416,
+        368
+      ],
+      "id": "035e3fd7-d304-4f13-a17d-5dc57bfa93b0",
+      "name": "Respond - Consulta BD"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"output\": \"{{ $json.output.output }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        576,
+        1216
+      ],
+      "id": "207af1cd-a223-4846-8be2-682c81c27458",
+      "name": "Respond - Não Confirmado"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"output\": \"{{ $json.output.output }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        576,
+        1056
+      ],
+      "id": "4ca55476-fdf1-488e-9334-b34cd8c2384a",
+      "name": "Respond - Alterar BD"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        368
+      ],
+      "id": "29307f5c-dfb6-4c57-8277-a2f5b2c70212",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Utiliza esta ferramenta para consultar a base de dados com informações de pacientes, médicos e cirurgias. Procura aqui sempre que o utilizador perguntar sobre id de cirurgias, nomes de pacientes, nomes dos médicos ou detalhes das cirurgias.",
+        "tableName": "documentos",
+        "topK": 30,
+        "options": {
+          "columnNames": {
+            "values": {
+              "contentColumnName": "content"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        64,
+        1792
+      ],
+      "id": "1d9cc14b-e53e-4d8c-adcd-441c5d4ec2ce",
+      "name": "PGVector Store Tool - Lista de Espera1",
+      "credentials": {
+        "postgres": {
+          "id": "mkReDiDoZBhY7N2I",
+          "name": "Supabase - Sara"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama3.3:latest",
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        1744
+      ],
+      "id": "782d7c21-65d7-4348-bd61-b905bbce9ee1",
+      "name": "Ollama Chat Model7",
+      "credentials": {
+        "ollamaApi": {
+          "id": "GxXaPNwYuCHar6Du",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=## Identidade e Função\nÉs um Assistente especializado em Base de Dados Hospitalar. O teu único propósito é fornecer informações rigorosas e verificáveis sobre listas de espera e agendamentos cirúrgicos, com base exclusiva nos dados devolvidos pelas ferramentas disponíveis.\n\n---\n\n## Ferramentas Disponíveis\n\n### 1. Lista de Espera:\n- Os dados estão na ferramenta de busca PGVector Store Tool - Lista de Espera que tem o seguinte formato\n- **Formato dos dados:** `| ID | ESPECIALIDADE | PATOLOGIA | MEDICO | PACIENTE |`\n- Para calcular **quantidades por categoria** (ex: por médico, por patologia, por especialidade), conta os registos correspondentes nos resultados devolvidos pela ferramenta.\n\n### 2.Consultar Agendamentos:\n- Os dados estão na ferramenta de busca PGVector Store Tool - Agendamentos que tem o seguinte formato:\n- **Formato dos dados:** `REGISTO DE AGENDAMENTO: | Data | Turno | Duração | IDs Cirurgias |`\n- Cada campo `IDs Cirurgias` pode conter múltiplos identificadores; para calcular **quantidades de cirurgias**, conta individualmente cada ID por categoria solicitada (ex: por turno, por data).\n\n---\n\n## Regras Obrigatórias\n\n1. **ALUCINAÇÃO ZERO:** Apenas podes fornecer informações **explicitamente presentes** nos resultados devolvidos pelas ferramentas. Nunca infiras, suponhas ou inventes dados.\n\n2. **Campos em falta:** Se um campo solicitado (ex: nome do doente, nome do médico) **não estiver disponível** nos resultados da ferramenta, inclui na resposta: `\"A informação não está disponível\"`.\n\n3. **Consulta obrigatória às ferramentas:** Antes de responder a qualquer pergunta sobre dados, invoca **sempre** a ferramenta adequada. Nunca respondas com base em memória ou contexto anterior.\n\n4. **Sem dados, sem resposta:** Se a ferramenta não devolver resultados relevantes, informa o utilizador que não foram encontrados dados correspondentes à sua pesquisa.\n\n---\n\n## Formato de Resposta\n\nResponde **sempre** no seguinte formato JSON:\n\n{\n  \"output\": \"<descrição do resultado>\",\n  \"tabela\": [\n    {\n      \"<coluna_1>\": \"<valor_1>\",\n      \"<coluna_2>\": \"<valor_2>\"\n    }\n  ]\n}\n\n### Regras de formatação:\n- O campo `\"output\"` deve conter uma frase pequena e simples do que será apresentado na tabela.\n- O campo `\"tabela\"` deve conter os dados estruturados como lista de objetos JSON.\n- Se não houver dados tabulares relevantes, `\"tabela\"` deve ser uma lista vazia: `[]`.\n- Nunca incluas texto fora do bloco JSON na resposta final."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -80,
+        1568
+      ],
+      "id": "c2f2869b-0ca8-4104-91b1-898cb4808244",
+      "name": "AI Agent - Consulta1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT (metadata->>'data_agendamento') as data_agendamento\nFROM agendamentos \nORDER BY metadata->>'data_agendamento' DESC \nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -384,
+        1568
+      ],
+      "id": "8678a685-0de3-4c38-81f5-ab076ed43626",
+      "name": "Execute a SQL query2",
+      "credentials": {
+        "postgres": {
+          "id": "mkReDiDoZBhY7N2I",
+          "name": "Supabase - Sara"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  chatInput: $('Code in JavaScript5').first().json.chatInput,\n  data_agendamento: $input.first().json.data_agendamento.replace(/[^0-9_]/g, '')\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        1568
+      ],
+      "id": "4c8b5804-c04b-4b6a-b7e9-1d934f00ea38",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        416,
+        1568
+      ],
+      "id": "2f84164b-d67a-4d23-a3e5-7fc717a2f2da",
+      "name": "Respond - Consulta BD1"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        1568
+      ],
+      "id": "40f28521-dce2-4da0-8b72-31adc0dbad51",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "content": "### 📚 AGENTE ANÁLIES",
+        "height": 460,
+        "width": 1084,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -416,
+        1504
+      ],
+      "typeVersion": 1,
+      "id": "0abad301-63ea-4530-a229-bb2b1eea7793",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"output\": \"Resumo do Agendamento | ID {{ $json.summary.id_agendamento }}\",\n  \"metricas_otmz\": {\n    \"Cirurgias Agendadas\": {{ $json.summary.total_surgeries_scheduled }},\n    \"Cirurgias Lista de Espera\": {{ $json.summary.total_surgeries_waiting }},\n    \"Recursos\": {{ $json.summary.overall_utilization_percent }},\n    \"Turnos desrespeitados\": {{ $json.summary.turnos_desrespeitados }}\n  }\n}\n ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        -96
+      ],
+      "id": "41171dbe-2844-4471-a8af-159ce70f073e",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        928
+      ],
+      "id": "072e933c-2bd7-48ce-9de4-e394636656f3",
+      "name": "Edit Fields3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent - Agendamentos",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "AI Agent - Consulta",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Classifier Agent",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "AI Agent - Alterações",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "AI Agent - Consulta1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Agendamentos",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Ollama": {
+      "ai_embedding": [
+        [
+          {
+            "node": "PGVector Store Lista de Espera",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "PGVector Store Tool - Lista de Espera",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "PGVector Store Tool - Lista de Espera1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Select rows from a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python (Beta)": {
+      "main": [
+        [
+          {
+            "node": "PGVector Store Lista de Espera",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Ollama1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "PGVector Store Agendamentos",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "PGVector Store Tool - Agendamentos",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python (Beta)1": {
+      "main": [
+        [
+          {
+            "node": "PGVector Store Agendamentos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PGVector Store Tool - Lista de Espera": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent - Consulta",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PGVector Store Tool - Agendamentos": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent - Consulta",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "AI Agent - Alterações",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "AI Agent - Consulta1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond - Data Invalida",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in Python (Beta)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader - Lista de Espera": {
+      "ai_document": [
+        [
+          {
+            "node": "PGVector Store Lista de Espera",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader - Agendamentos": {
+      "ai_document": [
+        [
+          {
+            "node": "PGVector Store Agendamentos",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python (Beta)3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent - Agendamentos",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute a SQL query1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute a SQL query2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond - Pergunta Genérica",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classifier Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Consulta",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Agendamentos": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Consulta": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select rows from a table": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Classifier Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PGVector Store Agendamentos": {
+      "main": [
+        []
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader - Agendamentos",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python (Beta)2": {
+      "main": [
+        [
+          {
+            "node": "PGVector Store Agendamentos1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Alterações": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Alterações",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript4": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Agendamentos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript5": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model6": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent - Alterações",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Respond - Alterar BD",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond - Não Confirmado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript6": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Alterações",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Ollama2": {
+      "ai_embedding": [
+        [
+          {
+            "node": "PGVector Store Agendamentos1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter1": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader - Agendamentos1",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader - Agendamentos1": {
+      "ai_document": [
+        [
+          {
+            "node": "PGVector Store Agendamentos1",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Classifier Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond - Data Invalida": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Agendamentos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond - Não Confirmado": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Alterações",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Respond - Consulta BD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PGVector Store Tool - Lista de Espera1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent - Consulta1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model7": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Consulta1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Consulta1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Consulta1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Respond - Consulta BD1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Respond - Retorno Otimização",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "45d19907-93f2-4def-b68b-a38cb1f968db",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f861f872925e44d88a19fe01bcdc72f1e69dbb187dcdd68da579a1128e61639f"
+  },
+  "id": "ic2VzMSsxcFrqbd1",
+  "tags": []
+}
